@@ -5,8 +5,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
 public class Diesel {
+	// store variables
+	private static HashMap<String, Integer> intVars = new HashMap<String, Integer>();
+	private static HashMap<String, String> stringVars = new HashMap<String, String>();
+	private static HashMap<String, Boolean> boolVars = new HashMap<String, Boolean>();
 	public static void preprocess(String filepath) {
 		// preprocess, read file, process comments, etc
         File saveFile = new File(filepath);
@@ -25,6 +30,10 @@ public class Diesel {
             System.err.println("Diesel Interpreter Error!: File not Found!");
             System.exit(64);
         }
+        // call interpret function
+        interpret(content);
+	}
+	public static void interpret(List<String> content) {
 
 	}
 	// helper function
