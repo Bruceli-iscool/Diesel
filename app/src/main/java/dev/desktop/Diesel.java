@@ -87,9 +87,35 @@ public class Diesel {
             } catch (Exception e) {
                 System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
             }
-        }
+        } else if (line.startsWith("bool ")) {
+        	try {
+        		String n = line.replace("bool ", "");
+                if (n.contains("=")) {
+                    	if (line.endsWith(";")) {
+	                    	if (n.contains("true") || n.contains("false")) {
+	                        String[] arr = n.split("=");
+	                        String m = arr[0].trim();
+	                        boolean value = Boolean.valueOf(arr[1].replace(";", "").trim().replace(" ", ""));
+	                        boolVars.put(m, value);
+                    	} else {
+                    		System.err.println("Diesel Interpreter Error!: Not a Valid Boolean value at line " + num);
+                    	}
+                    } else {
+                        semicolonError(num);
+                    }
+                } else {
+                    if (n.endsWith(";")) {
+                        n = n.replace(";", "");
+                        stringVars.put(n, "");
+                    } else {
+                        semicolonError(num);
+                    }
+                }
+        	} catch (Exception e) {
+                System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
+        	}
+        } else if (false) {}
     }
-
     // Helper functions
     public static String first(String str) {          
         if (str.length() < 2) {
