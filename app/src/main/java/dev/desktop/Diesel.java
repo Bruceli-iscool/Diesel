@@ -39,9 +39,18 @@ public class Diesel {
 	}
     public static void interpret(String line) {
         line = line.trim();
-        if (line.startsWith("int ")&& line.contains("=")) {
+        if (line.startsWith("int ")) {
             String m = line.replace("int ", "");
-            
+            if (line.contains("=")) {
+
+            } else {
+                if (line.contains(";")) {
+                    m.replace(";", "")
+                    intVars.put(m, 0);
+                } else {
+
+                }
+            }
         }
     }
 	// helper function
