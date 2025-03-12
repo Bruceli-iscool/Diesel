@@ -30,12 +30,20 @@ public class Diesel {
             System.err.println("Diesel Interpreter Error!: File not Found!");
             System.exit(64);
         }
-        // call interpret function
-        interpret(content);
+        launch(content);
 	}
-	public static void interpret(List<String> content) {
-
+	public static void launch(List<String> content) {
+        for (String line:content) {
+            interpret(line);
+        }
 	}
+    public static void interpret(String line) {
+        line = line.trim();
+        if (line.startsWith("int ")&& line.contains("=")) {
+            String m = line.replace("int ", "");
+            
+        }
+    }
 	// helper function
 	public static String first(String str) {          
 		if(str.length()<2){
