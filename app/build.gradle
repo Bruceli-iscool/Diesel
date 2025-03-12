@@ -23,6 +23,9 @@ dependencies {
 
     // This dependency is used by the application.
     implementation libs.guava
+    // for evaluating expressions
+    implementation 'org.openjdk.nashorn:nashorn-core:15.6'
+
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

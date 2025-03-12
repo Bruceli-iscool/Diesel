@@ -6,22 +6,26 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 public class Diesel {
 	// store variables
-	protected static HashMap<String, Integer> intVars = new HashMap<String, Integer>();
-	protected static HashMap<String, String> stringVars = new HashMap<String, String>();
-	protected static HashMap<String, Boolean> boolVars = new HashMap<String, Boolean>();
-	public static void preprocess(String filepath) {
+	protected static HashMap<String, Integer> intVars = new HashMap<>();
+	protected static HashMap<String, String> stringVars = new HashMap<>();
+	protected static HashMap<String, Boolean> boolVars = new HashMap<>();
+	@SuppressWarnings("StatementWithEmptyBody")
+    public static void preprocess(String filepath) throws ScriptException{
 		// preprocess, read file, process comments, etc
         File saveFile = new File(filepath);
-        List<String> content = new ArrayList<String>();
+        List<String> content = new ArrayList<>();
         try (Scanner scanner = new Scanner(saveFile)) {
             while (scanner.hasNextLine()) {
                 String line = scanner.nextLine();
                 // comments
                 if (first(line.trim()).equals("//")) {
-                    continue;
+                    // skip
                 } else {
                     content.add(line);
                 }
@@ -32,14 +36,14 @@ public class Diesel {
         }
         launch(content);
 	}
-	public static void launch(List<String> content) {
+	public static void launch(List<String> content) throws  ScriptException{
         int i = 0;
         for (String line:content) {
             i++;
             interpret(line, i);
         }
 	}
-    public static void interpret(String line, int num) {
+    public static void interpret(String line, int num) throws ScriptException {
         line = line.trim();
         if (line.startsWith("int ")) {
             try {
@@ -48,8 +52,10 @@ public class Diesel {
                     if (line.endsWith(";")) {
                         String[] arr = m.split("=");
                         String n = arr[0].trim();
-                        int value = Integer.parseInt(arr[1].replace(";", "").trim());
-                        intVars.put(n, value);
+                        String value = arr[1].replace(";", "").trim();
+						ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+						Object l = engine.eval((value));
+                        intVars.put(n, (int) l);
                     } else {
                         semicolonError(num);
                     }
@@ -62,7 +68,7 @@ public class Diesel {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
+                //System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
             }
         } else if (line.startsWith("String ")) {
             try {
@@ -95,7 +101,7 @@ public class Diesel {
 	                    	if (n.contains("true") || n.contains("false")) {
 	                        String[] arr = n.split("=");
 	                        String m = arr[0].trim();
-	                        boolean value = Boolean.valueOf(arr[1].replace(";", "").trim().replace(" ", ""));
+	                        boolean value = Boolean.parseBoolean(arr[1].replace(";", "").trim().replace(" ", ""));
 	                        boolVars.put(m, value);
                     	} else {
                     		System.err.println("Diesel Interpreter Error!: Not a Valid Boolean value at line " + num);
@@ -114,7 +120,7 @@ public class Diesel {
         	} catch (Exception e) {
                 System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
         	}
-        } else if (false) {}
+        } 
     }
     // Helper functions
     public static String first(String str) {          
