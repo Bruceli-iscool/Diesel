@@ -42,40 +42,55 @@ public class Diesel {
     public static void interpret(String line, int num) {
         line = line.trim();
         if (line.startsWith("int ")) {
-            String m = line.replace("int ", "");
-            if (line.contains("=")) {
-                if (line.endsWith(";")) {
-                    String[] arr = m.split("=");
-                    String n = arr[0].replace(" ", "");
-                    int value = Integer.parseInt(arr[1].replace(";", "").replace(" ", "").replace("=", ""));
-                    intVars.put(n, value);
+            try {
+                String m = line.replace("int ", "");
+                if (line.contains("=")) {
+                    if (line.endsWith(";")) {
+                        String[] arr = m.split("=");
+                        String n = arr[0].replace(" ", "");
+                        int value = Integer.parseInt(arr[1].replace(";", "").replace(" ", "").replace("=", ""));
+                        intVars.put(n, value);
+                    } else {
+                        semiColonError(num);
+                    }
                 } else {
-                    semiColonError(num);
+                    if (line.endsWith(";")) {
+                        m = m.replace(";", "");
+                        intVars.put(m, 0);
+                    } else {
+                        semiColonError(num);
+                    }
                 }
-            } else {
-                if (line.endsWith(";")) {
-                    m = m.replace(";", "");
-                    intVars.put(m, 0);
-                } else {
-                    semiColonError(num);
-                }
+            } catch (Exception e) {
+                System.err.println("Diesel Interpreter Error!: An Unknown Error occured at line " + num);
             }
         } else if (line.startsWith("String")) {
-            String n = line.replace("String", "");
-            if (n.contains("=")) {
-
-            } else {
-                if (n.contains(";")) {
-                    n = n.replace(";", "");
-                    stringVars.put(n, "");
+            try {
+                String n = line.replace("String", "");
+                if (n.contains("=")) {
+                    if (line.endsWith(";")) {
+                        String[] arr = n.split("=");
+                        String m = arr[0].replace(" ", "");
+                        int value = arr[1].trim().replaceAll('"', "").replace(";", "");
+                        stringVars.put(m, value);
+                    } else {
+                        semiColonError
+                    }
                 } else {
-                    semiColonError(num);
+                    if (n.contains(";")) {
+                        n = n.replace(";", "");
+                        stringvars.put(n, "");
+                    } else {
+                        semiColonError(num);
+                    }
                 }
+            } catch (exception e) {
+                system.err.println("diesel interpreter error!: an unknown error occured at line " + num);
             }
         }
     }
 	// helper functions
-	public static String first(String str) {          
+	public static string first(string str) {          
 		if(str.length()<2){
 		    return str;
 		}
@@ -83,7 +98,7 @@ public class Diesel {
 		    return str.substring(0,2);
 		}
 	}
-    public static void semiColonError(int line) {
-        System.err.println("Diesel Interpreter Error!: Expected ';' at line " + line);
+    public static void semicolonerror(int line) {
+        system.err.println("diesel interpreter error!: expected ';' at line " + line);
     }
 }
