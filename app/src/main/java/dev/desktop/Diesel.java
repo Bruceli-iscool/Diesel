@@ -36,7 +36,7 @@ public class Diesel {
         }
         launch(content);
 	}
-	public static void launch(List<String> content) throws  ScriptException{
+	public static void launch(List<String> content) throws ScriptException{
         int i = 0;
         for (String line:content) {
             i++;
@@ -66,20 +66,6 @@ public class Diesel {
                         z = "";
                     } 
                     result.add(")");
-                    break;
-                case '{':
-                    if (!z.isEmpty()) {
-                        result.add(z);
-                        z = "";
-                    } 
-                    result.add("{");
-                    break;
-                case '}':
-                    if (!z.isEmpty()) {
-                        result.add(z);
-                        z = "";
-                    } 
-                    result.add("}");
                     break;
                 case ';':
                     if (!z.isEmpty()) {
@@ -126,7 +112,42 @@ public class Diesel {
         return result;
     }
     public static void interpret(String line, int num) throws ScriptException {
-
+        ArrayList<String> tokens = lex(line);
+        String current = tokens.get(0);
+        if (current.matches("int")) {
+            tokens.remove(0);
+            current = tokens.get(0);
+            if (current.matches("([A-Za-z0-9\\-\\_]+)")) {
+                String n = current;
+                tokens.remove(0);
+                current = tokens.get(0);
+                if (current.matches("=")) {
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    if (current.matches("^(?:\\d+\\s*[+-])*\\s*\\d+$")) {
+                        String value = current;
+                        for (String var:intVars.keySet()) {
+                        	value = value.replace(var, String.valueOf(intVars.get(var)));
+                        }
+                        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                        Object l = engine.eval(value);
+                        intVars.put(n, (int) l);
+                        return;
+                        // finish semicolon handling and debug
+                    }
+                } else {
+                    if (current.matches(";")) {
+                        tokens.remove(0);
+                        intVars.put(n, 0);
+                        return;
+                    } else {
+                        semicolonError(num);
+                    }
+                }
+            } else {
+                System.err.println("Diesel Interpreter Error!: Invalid Variable name at line " + num);
+            }
+        }
     }
     // Helper functions
     public static String first(String str) {          
