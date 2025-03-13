@@ -43,92 +43,90 @@ public class Diesel {
             interpret(line, i);
         }
 	}
+        public static ArrayList<String> lex(String input) {
+        // list of tokens in String
+        ArrayList<String> result = new ArrayList<String>();
+        String z = "";
+        // detect if a String is created or not
+        boolean ifString = false;
+        // ifs are to end strings if it hits a token
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            switch(c) {
+                case '(':
+                    if (!z.isEmpty()) {
+                        result.add(z);
+                        z = "";
+                    } 
+                    result.add("(");
+                    break;
+                case ')':
+                    if (!z.isEmpty()) {
+                        result.add(z);
+                        z = "";
+                    } 
+                    result.add(")");
+                    break;
+                case '{':
+                    if (!z.isEmpty()) {
+                        result.add(z);
+                        z = "";
+                    } 
+                    result.add("{");
+                    break;
+                case '}':
+                    if (!z.isEmpty()) {
+                        result.add(z);
+                        z = "";
+                    } 
+                    result.add("}");
+                    break;
+                case ';':
+                    if (!z.isEmpty()) {
+                        result.add(z);
+                        z = "";
+                    }
+                    result.add(";");
+                    break;
+                case '=':
+                    if (!z.isEmpty()) {
+                        result.add(z);
+                        z = "";
+                    }
+                    result.add("=");
+                    break;
+                case '"':
+                    if (!z.isEmpty() && ifString) {
+                        ifString = false;
+                        result.add(z);
+                        z = "";
+                    } else {
+                        ifString = true;
+                    }
+                    result.add("\"");
+                    break;
+                case ' ':
+                    if (!z.isEmpty() && ifString == false) {
+                        result.add(z);
+                        z = "";
+                    } else if (ifString) {
+                        z += c;
+                    }
+                    break;
+                default:
+                    z += c;
+                    break;
+            }
+        }
+
+        if (!z.isEmpty()) {
+            result.add(z);
+        }
+        
+        return result;
+    }
     public static void interpret(String line, int num) throws ScriptException {
-        line = line.trim();
-        if (line.startsWith("int ")) {
-            try {
-                String m = line.replace("int ", "");
-                if (line.contains("=")) {
-                    if (line.endsWith(";")) {
-                        String[] arr = m.split("=");
-                        String n = arr[0].trim();
-                        String value = arr[1].replace(";", "").trim();
-                        for (String var : intVars.keySet()) {
-                            value = value.replace(var, String.valueOf(intVars.get(var)));
-                        }
-						ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-						Object l = engine.eval((value));
-                        intVars.put(n, (int) l);
-                    } else {
-                        semicolonError(num);
-                    }
-                } else {
-                    if (line.endsWith(";")) {
-                        m = m.replace(";", "");
-                        intVars.put(m, 0);
-                    } else {
-                        semicolonError(num);
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
-            }
-        } else if (line.startsWith("String ")) {
-            try {
-                String n = line.replace("String ", "").trim();
-                if (n.contains("=")) {
-                    if (line.endsWith(";")) {
-                        String[] arr = n.split("=");
-                        String m = arr[0].trim();
-                        String value = arr[1].replace(";", "").trim();
-                        for (String var:stringVars.keySet()) {
-                        	value = value.replace(var, String.valueOf(stringVars.get(var)));
-                        }
-                        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-                        Object l = engine.eval((value));
-                        stringVars.put(m, ((String) l).replace("\"", ""));
-                    } else {
-                        semicolonError(num);
-                    }
-                } else {
-                    if (n.endsWith(";")) {
-                        n = n.replace(";", "");
-                        stringVars.put(n, "");
-                    } else {
-                        semicolonError(num);
-                    }
-                }
-            } catch (Exception e) {
-                System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
-            }
-        } else if (line.startsWith("bool ")) {
-        	try {
-        		String n = line.replace("bool ", "");
-                if (n.contains("=")) {
-                    	if (line.endsWith(";")) {
-	                    	if (n.contains("true") || n.contains("false")) {
-	                        String[] arr = n.split("=");
-	                        String m = arr[0].trim();
-	                        boolean value = Boolean.parseBoolean(arr[1].replace(";", "").trim().replace(" ", ""));
-	                        boolVars.put(m, value);
-                    	} else {
-                    		System.err.println("Diesel Interpreter Error!: Not a Valid Boolean value at line " + num);
-                    	}
-                    } else {
-                        semicolonError(num);
-                    }
-                } else {
-                    if (n.endsWith(";")) {
-                        n = n.replace(";", "");
-                        stringVars.put(n, "");
-                    } else {
-                        semicolonError(num);
-                    }
-                }
-        	} catch (Exception e) {
-                System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
-        	}
-        } 
+
     }
     // Helper functions
     public static String first(String str) {          
