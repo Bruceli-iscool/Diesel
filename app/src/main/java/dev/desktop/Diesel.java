@@ -80,8 +80,13 @@ public class Diesel {
                     if (line.endsWith(";")) {
                         String[] arr = n.split("=");
                         String m = arr[0].trim();
-                        String value = arr[1].replace(";", "").trim().replace("\"", "");
-                        stringVars.put(m, value);
+                        String value = arr[1].replace(";", "").trim();
+                        for (String var:stringVars.keySet()) {
+                        	value = value.replace(var, String.valueOf(stringVars.get(var)));
+                        }
+                        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                        Object l = engine.eval((value));
+                        stringVars.put(m, ((String) l).replace("\"", ""));
                     } else {
                         semicolonError(num);
                     }
