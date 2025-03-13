@@ -124,7 +124,7 @@ public class Diesel {
                 if (current.matches("=")) {
                     tokens.remove(0);
                     current = tokens.get(0);
-                    if (current.matches("^(?:\\d+\\s*[+-])*\\s*\\d+$")) {
+                    if (current.matches("^[a-zA-Z0-9*/+\\-_]+$")) {
                         String value = current;
                         for (String var:intVars.keySet()) {
                         	value = value.replace(var, String.valueOf(intVars.get(var)));
@@ -132,8 +132,16 @@ public class Diesel {
                         ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
                         Object l = engine.eval(value);
                         intVars.put(n, (int) l);
-                        return;
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                        if (current.matches(";")) {
+                            return;
+                        } else {
+                            semicolonError(num);
+                        }
                         // finish semicolon handling and debug
+                    } else {
+                        System.err.println("Diesel Interpreter Error!: Invalid Value for integer at line " + num);
                     }
                 } else {
                     if (current.matches(";")) {
@@ -144,6 +152,17 @@ public class Diesel {
                         semicolonError(num);
                     }
                 }
+            } else {
+                System.err.println("Diesel Interpreter Error!: Invalid Variable name at line " + num);
+            }
+        } else if (current.matches("String")) {
+            tokens.remove(0);
+            current = tokens.get(0);
+            if (current.matches("([A-Za-z0-9\\-\\_]+)")) {
+                String n = current;
+                tokens.remove(0);
+                current = tokens.get(0);
+                // todo
             } else {
                 System.err.println("Diesel Interpreter Error!: Invalid Variable name at line " + num);
             }
