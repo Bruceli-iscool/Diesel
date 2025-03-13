@@ -8,4 +8,4 @@ Example:
 	int num = 5 + 5;
 	int n = 5 + num;
 
-More on types [here][types.md]
+More on types [here](types.md)
