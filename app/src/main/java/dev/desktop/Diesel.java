@@ -53,6 +53,9 @@ public class Diesel {
                         String[] arr = m.split("=");
                         String n = arr[0].trim();
                         String value = arr[1].replace(";", "").trim();
+                        for (String var : intVars.keySet()) {
+                            value = value.replace(var, String.valueOf(intVars.get(var)));
+                        }
 						ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
 						Object l = engine.eval((value));
                         intVars.put(n, (int) l);
@@ -68,7 +71,7 @@ public class Diesel {
                     }
                 }
             } catch (Exception e) {
-                //System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
+                System.err.println("Diesel Interpreter Error!: An Unknown Error occurred at line " + num);
             }
         } else if (line.startsWith("String ")) {
             try {
