@@ -162,7 +162,26 @@ public class Diesel {
                 String n = current;
                 tokens.remove(0);
                 current = tokens.get(0);
-                // todo
+                if (current.matches("=")) {
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    String value = "";
+                    while (!current.matches(";")) {
+                        value = value + current;
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                    }
+                    ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                    Object c = engine.eval(value);
+                    stringVars.put(n, (String) c);
+                } else {
+                    if (current.matches(";")) {
+                        tokens.remove(0);
+                        stringVars.put(n, "");
+                    } else {
+                        semicolonError(num);
+                    }
+                }
             } else {
                 System.err.println("Diesel Interpreter Error!: Invalid Variable name at line " + num);
             }
