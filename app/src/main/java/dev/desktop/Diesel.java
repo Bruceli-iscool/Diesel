@@ -21,6 +21,7 @@ public class Diesel {
     protected static ArrayList<String> temp = new ArrayList<>();
     protected static String tempName = "";
     protected static String args = "";
+
     @SuppressWarnings("StatementWithEmptyBody")
     public static void preprocess(String filepath) throws ScriptException {
         // preprocess, read file, process comments, etc
@@ -61,33 +62,12 @@ public class Diesel {
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
             switch (c) {
-                case '(':
+                case '(': case ')': case ';': case '=': case '+': case '-': case '*': case '/':
                     if (!z.isEmpty()) {
                         result.add(z);
                         z = "";
                     }
-                    result.add("(");
-                    break;
-                case ')':
-                    if (!z.isEmpty()) {
-                        result.add(z);
-                        z = "";
-                    }
-                    result.add(")");
-                    break;
-                case ';':
-                    if (!z.isEmpty()) {
-                        result.add(z);
-                        z = "";
-                    }
-                    result.add(";");
-                    break;
-                case '=':
-                    if (!z.isEmpty()) {
-                        result.add(z);
-                        z = "";
-                    }
-                    result.add("=");
+                    result.add(String.valueOf(c));
                     break;
                 case '"':
                     if (!z.isEmpty() && ifString) {
@@ -100,7 +80,7 @@ public class Diesel {
                     result.add("\"");
                     break;
                 case ' ':
-                    if (!z.isEmpty() && ifString == false) {
+                    if (!z.isEmpty() && !ifString) {
                         result.add(z);
                         z = "";
                     } else if (ifString) {
@@ -112,7 +92,6 @@ public class Diesel {
                     break;
             }
         }
-
         if (!z.isEmpty()) {
             result.add(z);
         }
@@ -125,7 +104,7 @@ public class Diesel {
         tokens.add(tokens.size(), "");
         String current = tokens.get(0);
         if (stack < 1) {
-            try {
+            //try {
                 if (current.matches("int")) {
                     tokens.remove(0);
                     current = tokens.get(0);
@@ -137,15 +116,18 @@ public class Diesel {
                             tokens.remove(0);
                             current = tokens.get(0);
                             if (current.matches("^[a-zA-Z0-9*/+\\-_]+$")) {
-                                String value = current;
+                                String value = "";
+                                while (!current.matches(";")) {
+                                    value = value + current;
+                                    tokens.remove(0);
+                                    current = tokens.get(0);
+                                }
                                 for (String var : intVars.keySet()) {
                                     value = value.replace(var, String.valueOf(intVars.get(var)));
                                 }
                                 ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
                                 Object l = engine.eval(value);
                                 intVars.put(n, (int) l);
-                                tokens.remove(0);
-                                current = tokens.get(0);
                                 if (current.matches(";")) {
                                     return;
                                 } else {
@@ -198,7 +180,7 @@ public class Diesel {
                                 boolean replaced = false;
                                 for (String var : stringVars.keySet()) {
                                     if (value.startsWith(var, i)) {
-                                        result += stringVars.get(var);
+                                        result += "\"" + stringVars.get(var) + "\"";
                                         i += var.length();
                                         replaced = true;
                                         break;
@@ -252,7 +234,12 @@ public class Diesel {
                                 }
                             } else if (current.matches("([A-Za-z0-9\\\\-\\\\_\\=\\!\\&\\|]+)") && !current.matches("true")
                                     && !current.matches("false")) {
-                                String value = current;
+                                String value = "";
+                                while (!current.matches(";")) {
+                                    value = value + current;
+                                    tokens.remove(0);
+                                    current = tokens.get(0);
+                                }
                                 for (String var : boolVars.keySet()) {
                                     value = value.replace(var, String.valueOf(boolVars.get(var)));
                                 }
@@ -298,10 +285,94 @@ public class Diesel {
                     } else {
                         System.err.println("Diesel Interpreter Error!: Invalid indentifier name at line " + num);
                     }
+                } else if (intVars.containsKey(current)) {
+                    String n = current;
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    if (current.matches("=")) {
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                        if (current.matches("^[a-zA-Z0-9*/+\\-_]+$")) {
+                            String value = "";
+                            while (!current.matches(";")) {
+                                value = value + current;
+                                tokens.remove(0);
+                                current = tokens.get(0);
+                            }
+                            for (String var : intVars.keySet()) {
+                                value = value.replace(var, String.valueOf(intVars.get(var)));
+                            }
+                            ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                            Object l = engine.eval(value);
+                            intVars.put(n, (int) l);
+                            if (current.matches(";")) {
+                                return;
+                            } else {
+                                semicolonError(num);
+                            }
+                        } else {
+                            System.err.println("Diesel Interpreter Error!: Invalid Value for integer at line " + num);
+                        }
+                    } else {
+                        System.err.println("Diesel Interpreter Error!: Expected \")\" at line  " + num);                       
+                    }
+                } else if (stringVars.containsKey(current)) {
+                    String n = current;
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    if (current.matches("=")) {
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                        String value = "";
+                        while (!current.matches(";")) {
+                            value = value + current;
+                            tokens.remove(0);
+                            current = tokens.get(0);
+                        }
+                        int i = 0;
+                        String result = "";
+                        boolean u = false;
+                        while (i < value.length()) {
+                            char c = value.charAt(i);
+                            if (c == '"') {
+                                u = !u;
+                            }
+                            if (u) {
+                                result += c;
+                                i++;
+                                continue;
+                            }
+                                boolean replaced = false;
+                                for (String var : stringVars.keySet()) {
+                                    if (value.startsWith(var, i)) {
+                                        result += "\"" + stringVars.get(var) + "\"";
+                                        i += var.length();
+                                        replaced = true;
+                                        break;
+                                    }
+                                }
+                                if (!replaced) {
+                                    result += c;
+                                    i++;
+                                }
+                            }
+                        value = result;
+                        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                        Object c = engine.eval(value);
+                        stringVars.put(n, (String) c);
+                        if (current.matches(";")) {
+                            return;
+                        } else {
+                            semicolonError(num);
+                        }
+                    } else {
+                        System.err.println("Diesel Interpreter Error!: Expected \")\" at line  " + num);                       
+                    }
                 }
-            } catch (Exception e) {
-                System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
-            }
+                
+            //} catch (Exception e) {
+            //    System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
+            //}
         } else if (stack >0 && mode == 1) {
             if (current.matches("end")) {
                 stack -= 1;

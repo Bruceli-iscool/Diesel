@@ -8,7 +8,8 @@ public class App {
             // fix errors
             Diesel.interpret("String c = \"cooler\";", 1);
             Diesel.interpret("int b = 4+4;", 2);
-            Diesel.interpret("String a = \"cool \" + \"dude\";", 3);
+            Diesel.interpret("b = b+ 5;", 30);
+            Diesel.interpret("c = c+\"j\";", 3);
             Diesel.interpret("procedure l(int l, int b)", 4);
             Diesel.interpret("bool k = 2!=3;", 5);
             Diesel.interpret("end", 6);
