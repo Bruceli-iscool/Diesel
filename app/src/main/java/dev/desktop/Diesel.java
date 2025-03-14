@@ -15,12 +15,12 @@ public class Diesel {
     protected static HashMap<String, Integer> intVars = new HashMap<>();
     protected static HashMap<String, String> stringVars = new HashMap<>();
     protected static HashMap<String, Boolean> boolVars = new HashMap<>();
-    // might need to change type for arguments
-    protected static HashMap<String, HashMap<ArrayList<String>, ArrayList<String>>> procedures = new HashMap<>();
+    protected static HashMap<String, HashMap<String, ArrayList<String>>> procedures = new HashMap<>();
     protected static int stack = 0;
     protected static int mode = 0;
     protected static ArrayList<String> temp = new ArrayList<>();
     protected static String tempName = "";
+    protected static String args = "";
     @SuppressWarnings("StatementWithEmptyBody")
     public static void preprocess(String filepath) throws ScriptException {
         // preprocess, read file, process comments, etc
@@ -272,7 +272,6 @@ public class Diesel {
                         System.err.println("Diesel Interpreter Error!: Invalid indentifier name at line " + num);
                     }
                 } else if (current.matches("procedure")) {
-                    ArrayList<String> args = new ArrayList<>();
                     tokens.remove(0);
                     current = tokens.get(0);
                     if (current.matches("([a-zA-Z0-9\\_]+)")) {
@@ -280,13 +279,19 @@ public class Diesel {
                         tokens.remove(0);
                         current = tokens.get(0);
                         if (current.matches("\\(")) {
-                            // todo for args support
                             tokens.remove(0);
                             current = tokens.get(0);
+                            String argString = "";
+                            while (!current.matches("\\)") && !current.matches(" ")) {
+                                argString += " " + current;
+                                tokens.remove(0);
+                                current = tokens.get(0);
+                            }
                             if (current.matches("\\)")) {
                                 mode = 1;
                                 stack = 1;
-                            } else {
+                                args = argString.trim();
+                            } else { 
                                 System.out.println("Diesel Interpreter Error!: Expected \")\" at line " + num);
                             }
                         }
@@ -300,9 +305,12 @@ public class Diesel {
         } else if (stack >0 && mode == 1) {
             if (current.matches("end")) {
                 stack -= 1;
-                procedures.put(tempName, temp);
+                HashMap<String, ArrayList<String>> n = new HashMap<>();
+                n.put(args, temp);
+                procedures.put(tempName, n); 
                 tempName = "";
                 temp = new ArrayList<>();
+                args = "";
             } else {
                 temp.add(line);
             }
