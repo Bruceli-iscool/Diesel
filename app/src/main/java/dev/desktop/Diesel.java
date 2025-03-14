@@ -16,7 +16,7 @@ public class Diesel {
     protected static HashMap<String, String> stringVars = new HashMap<>();
     protected static HashMap<String, Boolean> boolVars = new HashMap<>();
     // might need to change type for arguments
-    protected static HashMap<String, ArrayList<String>> procedures = new HashMap<>();
+    protected static HashMap<String, HashMap<ArrayList<String>, ArrayList<String>>> procedures = new HashMap<>();
     protected static int stack = 0;
     protected static int mode = 0;
     protected static ArrayList<String> temp = new ArrayList<>();
@@ -196,9 +196,9 @@ public class Diesel {
                                     continue;
                                 }
                                 boolean replaced = false;
-                                for (String var : intVars.keySet()) {
+                                for (String var : stringVars.keySet()) {
                                     if (value.startsWith(var, i)) {
-                                        result += intVars.get(var);
+                                        result += stringVars.get(var);
                                         i += var.length();
                                         replaced = true;
                                         break;
@@ -253,8 +253,8 @@ public class Diesel {
                             } else if (current.matches("([A-Za-z0-9\\\\-\\\\_\\=\\!\\&\\|]+)") && !current.matches("true")
                                     && !current.matches("false")) {
                                 String value = current;
-                                for (String var : intVars.keySet()) {
-                                    value = value.replace(var, String.valueOf(intVars.get(var)));
+                                for (String var : boolVars.keySet()) {
+                                    value = value.replace(var, String.valueOf(boolVars.get(var)));
                                 }
                                 boolVars.put(n, Boolean.parseBoolean(value));    
                             } else {
