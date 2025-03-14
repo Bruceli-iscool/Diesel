@@ -15,7 +15,12 @@ public class Diesel {
     protected static HashMap<String, Integer> intVars = new HashMap<>();
     protected static HashMap<String, String> stringVars = new HashMap<>();
     protected static HashMap<String, Boolean> boolVars = new HashMap<>();
-
+    // might need to change type for arguments
+    protected static HashMap<String, ArrayList<String>> procedures = new HashMap<>();
+    protected static int stack = 0;
+    protected static int mode = 0;
+    protected static ArrayList<String> temp = new ArrayList<>();
+    protected static String tempName = "";
     @SuppressWarnings("StatementWithEmptyBody")
     public static void preprocess(String filepath) throws ScriptException {
         // preprocess, read file, process comments, etc
@@ -118,158 +123,189 @@ public class Diesel {
     public static void interpret(String line, int num) throws ScriptException {
         ArrayList<String> tokens = lex(line);
         tokens.add(tokens.size(), "");
-        try {
-            String current = tokens.get(0);
-            if (current.matches("int")) {
-                tokens.remove(0);
-                current = tokens.get(0);
-                if (current.matches("([A-Za-z0-9\\-\\_]+)")) {
-                    String n = current;
+        String current = tokens.get(0);
+        if (stack < 1) {
+            try {
+                if (current.matches("int")) {
                     tokens.remove(0);
                     current = tokens.get(0);
-                    if (current.matches("=")) {
+                    if (current.matches("([A-Za-z0-9\\-\\_]+)")) {
+                        String n = current;
                         tokens.remove(0);
                         current = tokens.get(0);
-                        if (current.matches("^[a-zA-Z0-9*/+\\-_]+$")) {
-                            String value = current;
-                            for (String var : intVars.keySet()) {
-                                value = value.replace(var, String.valueOf(intVars.get(var)));
-                            }
-                            ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-                            Object l = engine.eval(value);
-                            intVars.put(n, (int) l);
+                        if (current.matches("=")) {
                             tokens.remove(0);
                             current = tokens.get(0);
+                            if (current.matches("^[a-zA-Z0-9*/+\\-_]+$")) {
+                                String value = current;
+                                for (String var : intVars.keySet()) {
+                                    value = value.replace(var, String.valueOf(intVars.get(var)));
+                                }
+                                ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                                Object l = engine.eval(value);
+                                intVars.put(n, (int) l);
+                                tokens.remove(0);
+                                current = tokens.get(0);
+                                if (current.matches(";")) {
+                                    return;
+                                } else {
+                                    semicolonError(num);
+                                }
+                            } else {
+                                System.err.println("Diesel Interpreter Error!: Invalid Value for integer at line " + num);
+                            }
+                        } else {
                             if (current.matches(";")) {
+                                tokens.remove(0);
+                                intVars.put(n, 0);
                                 return;
                             } else {
                                 semicolonError(num);
                             }
-                        } else {
-                            System.err.println("Diesel Interpreter Error!: Invalid Value for integer at line " + num);
                         }
                     } else {
-                        if (current.matches(";")) {
-                            tokens.remove(0);
-                            intVars.put(n, 0);
-                            return;
-                        } else {
-                            semicolonError(num);
-                        }
+                        System.err.println("Diesel Interpreter Error!: Invalid indentifier name at line " + num);
                     }
-                } else {
-                    System.err.println("Diesel Interpreter Error!: Invalid indentifier name at line " + num);
-                }
-            } else if (current.matches("String")) {
-                tokens.remove(0);
-                current = tokens.get(0);
-                if (current.matches("([A-Za-z0-9\\-\\_]+)")) {
-                    String n = current;
+                } else if (current.matches("String")) {
                     tokens.remove(0);
                     current = tokens.get(0);
-                    if (current.matches("=")) {
+                    if (current.matches("([A-Za-z0-9\\-\\_]+)")) {
+                        String n = current;
                         tokens.remove(0);
                         current = tokens.get(0);
-                        String value = "";
-                        while (!current.matches(";")) {
-                            value = value + current;
+                        if (current.matches("=")) {
                             tokens.remove(0);
                             current = tokens.get(0);
-                        }
-                        int i = 0;
-                        String result = "";
-                        boolean u = false;
-                        while (i < value.length()) {
-                            char c = value.charAt(i);
-                            if (c == '"') {
-                                u = !u;
+                            String value = "";
+                            while (!current.matches(";")) {
+                                value = value + current;
+                                tokens.remove(0);
+                                current = tokens.get(0);
                             }
-                            if (u) {
-                                result += c;
-                                i++;
-                                continue;
-                            }
-                            boolean replaced = false;
-                            for (String var : intVars.keySet()) {
-                                if (value.startsWith(var, i)) {
-                                    result += intVars.get(var);
-                                    i += var.length();
-                                    replaced = true;
-                                    break;
+                            int i = 0;
+                            String result = "";
+                            boolean u = false;
+                            while (i < value.length()) {
+                                char c = value.charAt(i);
+                                if (c == '"') {
+                                    u = !u;
+                                }
+                                if (u) {
+                                    result += c;
+                                    i++;
+                                    continue;
+                                }
+                                boolean replaced = false;
+                                for (String var : intVars.keySet()) {
+                                    if (value.startsWith(var, i)) {
+                                        result += intVars.get(var);
+                                        i += var.length();
+                                        replaced = true;
+                                        break;
+                                    }
+                                }
+                                if (!replaced) {
+                                    result += c;
+                                    i++;
                                 }
                             }
-                            if (!replaced) {
-                                result += c;
-                                i++;
-                            }
-                        }
-                        value = result;
-                        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-                        Object c = engine.eval(value);
-                        stringVars.put(n, (String) c);
-                        tokens.remove(0);
-                        current = tokens.get(0);
-                        if (current.matches(";")) {
-                            return;
-                        } else {
-                            semicolonError(num);
-                        }
-                    } else {
-                        if (current.matches(";")) {
-                            tokens.remove(0);
-                            stringVars.put(n, "");
-                        } else {
-                            semicolonError(num);
-                        }
-                    }
-                } else {
-                    System.err.println("Diesel Interpreter Error!: Invalid indentifier name at line " + num);
-                }
-            } else if (current.matches("bool")) {
-                tokens.remove(0);
-                current = tokens.get(0);
-                if (current.matches("([A-Za-z0-9\\-\\_]+)")) {
-                    String n = current;
-                    tokens.remove(0);
-                    current = tokens.get(0);
-                    if (current.matches("=")) {
-                        tokens.remove(0);
-                        current = tokens.get(0);
-                        if (current.matches("true") || current.matches("false")) {
+                            value = result;
                             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-                            Object value = engine.eval(current);
-                            boolVars.put(n, Boolean.parseBoolean((String)value));
-                            tokens.remove(0);
-                            current = tokens.get(0);
+                            Object c = engine.eval(value);
+                            stringVars.put(n, (String) c);
                             if (current.matches(";")) {
                                 return;
                             } else {
                                 semicolonError(num);
                             }
-                        } else if (current.matches("([A-Za-z0-9\\\\-\\\\_\\=\\!\\&\\|]+)") && !current.matches("true")
-                                && !current.matches("false")) {
-                            String value = current;
-                            for (String var : intVars.keySet()) {
-                                value = value.replace(var, String.valueOf(intVars.get(var)));
-                            }
-                            boolVars.put(n, Boolean.parseBoolean(value));    
                         } else {
-                            System.err.println("Diesel Interpreter Error!: Invalid Boolean value at line " + num);
+                            if (current.matches(";")) {
+                                tokens.remove(0);
+                                stringVars.put(n, "");
+                            } else {
+                                semicolonError(num);
+                            }
                         }
                     } else {
-                        if (current.matches(";")) {
-                            tokens.remove(0);
-                            boolVars.put(n, false);
-                        } else {
-                            semicolonError(num);
-                        }
+                        System.err.println("Diesel Interpreter Error!: Invalid indentifier name at line " + num);
                     }
-                } else {
-                    System.err.println("Diesel Interpreter Error!: Invalid indentifier name at line " + num);
+                } else if (current.matches("bool")) {
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    if (current.matches("([A-Za-z0-9\\-\\_]+)")) {
+                        String n = current;
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                        if (current.matches("=")) {
+                            tokens.remove(0);
+                            current = tokens.get(0);
+                            if (current.matches("true") || current.matches("false")) {
+                                ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                                Object value = engine.eval(current);
+                                boolVars.put(n, Boolean.parseBoolean((String)value));
+                                tokens.remove(0);
+                                current = tokens.get(0);
+                                if (current.matches(";")) {
+                                    return;
+                                } else {
+                                    semicolonError(num);
+                                }
+                            } else if (current.matches("([A-Za-z0-9\\\\-\\\\_\\=\\!\\&\\|]+)") && !current.matches("true")
+                                    && !current.matches("false")) {
+                                String value = current;
+                                for (String var : intVars.keySet()) {
+                                    value = value.replace(var, String.valueOf(intVars.get(var)));
+                                }
+                                boolVars.put(n, Boolean.parseBoolean(value));    
+                            } else {
+                                System.err.println("Diesel Interpreter Error!: Invalid Boolean value at line " + num);
+                            }
+                        } else {
+                            if (current.matches(";")) {
+                                tokens.remove(0);
+                                boolVars.put(n, false);
+                            } else {
+                                semicolonError(num);
+                            }
+                        }
+                    } else {
+                        System.err.println("Diesel Interpreter Error!: Invalid indentifier name at line " + num);
+                    }
+                } else if (current.matches("procedure")) {
+                    ArrayList<String> args = new ArrayList<>();
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    if (current.matches("([a-zA-Z0-9\\_]+)")) {
+                        tempName = current;
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                        if (current.matches("\\(")) {
+                            // todo for args support
+                            tokens.remove(0);
+                            current = tokens.get(0);
+                            if (current.matches("\\)")) {
+                                mode = 1;
+                                stack = 1;
+                            } else {
+                                System.out.println("Diesel Interpreter Error!: Expected \")\" at line " + num);
+                            }
+                        }
+                    } else {
+                        System.err.println("Diesel Interpreter Error!: Invalid indentifier name at line " + num);
+                    }
                 }
+            } catch (Exception e) {
+                System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
             }
-        } catch (Exception e) {
-        System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
+        } else if (stack >0 && mode == 1) {
+            if (current.matches("end")) {
+                stack -= 1;
+                procedures.put(tempName, temp);
+                tempName = "";
+                temp = new ArrayList<>();
+            } else {
+                temp.add(line);
+            }
         }
     }
 
