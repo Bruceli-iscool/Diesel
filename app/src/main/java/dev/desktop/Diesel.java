@@ -104,7 +104,7 @@ public class Diesel {
         tokens.add(tokens.size(), "");
         String current = tokens.get(0);
         if (stack < 1) {
-            //try {
+            try {
                 if (current.matches("int")) {
                     tokens.remove(0);
                     current = tokens.get(0);
@@ -224,7 +224,7 @@ public class Diesel {
                             if (current.matches("true") || current.matches("false")) {
                                 ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
                                 Object value = engine.eval(current);
-                                boolVars.put(n, Boolean.parseBoolean((String)value));
+                                boolVars.put(n, (boolean) value);
                                 tokens.remove(0);
                                 current = tokens.get(0);
                                 if (current.matches(";")) {
@@ -314,7 +314,7 @@ public class Diesel {
                             System.err.println("Diesel Interpreter Error!: Invalid Value for integer at line " + num);
                         }
                     } else {
-                        System.err.println("Diesel Interpreter Error!: Expected \")\" at line  " + num);                       
+                        System.err.println("Diesel Interpreter Error!: Expected \"=\" at line  " + num);                       
                     }
                 } else if (stringVars.containsKey(current)) {
                     String n = current;
@@ -366,13 +366,70 @@ public class Diesel {
                             semicolonError(num);
                         }
                     } else {
-                        System.err.println("Diesel Interpreter Error!: Expected \")\" at line  " + num);                       
+                        System.err.println("Diesel Interpreter Error!: Expected \"=\" at line  " + num);                       
+                    }
+                } else if (boolVars.containsKey(current)) {
+                    String n = current;
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    if (current.matches("=")) {
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                            if (current.matches("true") || current.matches("false")) {
+                                ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+                                Object value = engine.eval(current);
+                                boolVars.put(n, Boolean.parseBoolean((String)value));
+                                tokens.remove(0);
+                                current = tokens.get(0);
+                                if (current.matches(";")) {
+                                    return;
+                                } else {
+                                    semicolonError(num);
+                                }
+                            } else if (current.matches("([A-Za-z0-9\\\\-\\\\_\\=\\!\\&\\|]+)") && !current.matches("true")
+                                    && !current.matches("false")) {
+                                String value = "";
+                                while (!current.matches(";")) {
+                                    value = value + current;
+                                    tokens.remove(0);
+                                    current = tokens.get(0);
+                                }
+                                for (String var : boolVars.keySet()) {
+                                    value = value.replace(var, String.valueOf(boolVars.get(var)));
+                                }
+                                boolVars.put(n, Boolean.parseBoolean(value));    
+                            } else {
+                                System.err.println("Diesel Interpreter Error!: Invalid Boolean value at line " + num);
+                            }
+                        
+                    } else {
+                        System.err.println("Diesel Interpreter Error!: Expected \"=\" at line  " + num);        
+                    }
+                } else if (procedures.containsKey(current)) {
+                    String n = current;
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    if (current.matches("\\(")) {
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                        String argString = "";
+                        while (!current.matches("\\)") && !current.matches(" ")) {
+                            argString += " " + current;
+                            tokens.remove(0);
+                            current = tokens.get(0);
+                        }
+                        if (current.matches("\\)")) {
+                            // todo
+                        } else {
+                            System.out.println("Diesel Interpreter Error!: Expected \")\" at line " + num);                            
+                        }
+                    } else {
+                        System.out.println("Diesel Interpreter Error!: Expected \"(\" at line " + num);                        
                     }
                 }
-                
-            //} catch (Exception e) {
-            //    System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
-            //}
+            } catch (Exception e) {
+                System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
+            }
         } else if (stack >0 && mode == 1) {
             if (current.matches("end")) {
                 stack -= 1;
