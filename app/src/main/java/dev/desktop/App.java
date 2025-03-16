@@ -12,9 +12,10 @@ public class App {
             Diesel.interpret("c = c+\"j\";", 3);
             Diesel.interpret("bool a = false;", 70);
             Diesel.interpret("a = 1 == 2;", 80);
-            Diesel.interpret("procedure l(int l, int b)", 4);
-            Diesel.interpret("bool k = 2!=3;", 5);
+            Diesel.interpret("procedure sum(int l, int b)", 4);
+            Diesel.interpret("int k = l + b;", 5);
             Diesel.interpret("end", 6);
+            Diesel.interpret("sum(5, 6);", 60);
         } catch (ScriptException e) {
             throw new RuntimeException(e);
         }

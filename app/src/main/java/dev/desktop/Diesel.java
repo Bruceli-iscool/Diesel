@@ -419,7 +419,21 @@ public class Diesel {
                             current = tokens.get(0);
                         }
                         if (current.matches("\\)")) {
-                            // todo
+                            tokens.remove(0);
+                            current = tokens.get(0);
+                            if (current.matches(";")) {
+                                HashMap<String, ArrayList<String>> args2 = procedures.get(n);
+                                String args4 = "";
+                                for ( String key : args2.keySet() ) {
+                                    args4 = key;
+                                }
+                                String[] e = args4.split(",");
+                                for (String i:e) {
+                                    
+                                }
+                            } else {
+                                semicolonError(num);
+                            }
                         } else {
                             System.out.println("Diesel Interpreter Error!: Expected \")\" at line " + num);                            
                         }
