@@ -7,8 +7,8 @@ public class App {
         try {
             // fix errors
             Diesel.interpret("String c = \"cooler\";", 1);
-            Diesel.interpret("int b = 4+4;", 2);
-            Diesel.interpret("b = b+ 5;", 30);
+            Diesel.interpret("int e = 4+4;", 2);
+            Diesel.interpret("e = e+ 5;", 30);
             Diesel.interpret("c = c+\"j\";", 3);
             Diesel.interpret("bool a = false;", 70);
             Diesel.interpret("a = 1 == 2;", 80);
@@ -19,9 +19,9 @@ public class App {
         } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
-        System.out.println(Diesel.intVars);
-        System.out.println(Diesel.stringVars);
-        System.out.println(Diesel.boolVars);
+        System.out.println(Diesel.ints);
+        System.out.println(Diesel.strings);
+        System.out.println(Diesel.booleans);
         System.out.println(Diesel.procedures);
         if (args.length != 1) {
             System.err.println("Diesel Interpreter Error!: Usage: dsl [filename]");

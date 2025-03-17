@@ -7,5 +7,6 @@ Example:
 	
 	int num = 5 + 5;
 	int n = 5 + num;
+	num = 5+n;
 
 More on types [here](types.md)
