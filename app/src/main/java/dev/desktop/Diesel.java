@@ -16,6 +16,9 @@ public class Diesel {
     protected static HashMap<String, String> strings = new HashMap<>();
     protected static HashMap<String, Boolean> booleans = new HashMap<>();
     protected static HashMap<String, HashMap<String, ArrayList<String>>> procedures = new HashMap<>();
+    protected static HashMap<String, HashMap<String, ArrayList<String>>> intFunctions = new HashMap<>();
+    protected static HashMap<String, HashMap<String, ArrayList<String>>> stringFunctions = new HashMap<>();
+    protected static HashMap<String, HashMap<String, ArrayList<String>>> boolFunctions = new HashMap<>();
     protected static int stack = 0;
     protected static int mode = 0;
     protected static ArrayList<String> temp = new ArrayList<>();
@@ -417,6 +420,17 @@ public class Diesel {
                         }
                     } else {
                         System.out.println("Diesel Interpreter Error!: Expected \"(\" at line " + num);                        
+                    }
+                } else if (current.matches("function")) {
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    String m = "";
+                    if (current.matches("int")) {
+                        m = "int";
+                    } else if (current.matches("String")) {
+                        m = "String";
+                    } else if (current.matches("bool")) {
+                        m = "bool";
                     }
                 }
             } catch (Exception e) {
