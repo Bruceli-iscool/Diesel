@@ -432,6 +432,11 @@ public class Diesel {
                     } else if (current.matches("bool")) {
                         m = "bool";
                     }
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    String n = current;
+                    tokens.remove(0);
+                    current = tokens.get(0);
                 }
             } catch (Exception e) {
                 System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
