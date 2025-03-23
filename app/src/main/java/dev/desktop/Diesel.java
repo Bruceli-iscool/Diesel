@@ -434,11 +434,27 @@ public class Diesel {
                     }
                     tokens.remove(0);
                     current = tokens.get(0);
-                    String n = current;
+                    tempName = current;
                     tokens.remove(0);
                     current = tokens.get(0);
                     if (current.matches("\\(")) {
-                        // todo
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                        String argString = "";
+                        while (!current.matches("\\)") && !current.matches(" ")) {
+                            argString += " " + current;
+                            tokens.remove(0);
+                            current = tokens.get(0);
+                        }
+                        if (current.matches("\\)")) {
+                            if (m == "int")mode = 2;
+                            else if (m=="String")mode = 3;
+                            else if (m=="bool")mode = 4;
+                            stack = 1;
+                            args = argString.trim();
+                        } else { 
+                            System.out.println("Diesel Interpreter Error!: Expected \")\" at line " + num);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -456,6 +472,34 @@ public class Diesel {
             } else {
                 temp.add(line);
             }
+        } else if (stack>0 && mode == 2) {
+            if (current.matches("end")) {
+                stack -= 1;
+                HashMap<String, ArrayList<String>> n = new HashMap<>();
+                n.put(args, temp);
+                intFunctions.put(tempName, n); 
+                tempName = "";
+                temp = new ArrayList<>();
+                args = "";                
+            } else {
+                temp.add(line);
+            } 
+        } else if (stack>0 && mode == 3) {
+                stack -= 1;
+                HashMap<String, ArrayList<String>> n = new HashMap<>();
+                n.put(args, temp);
+                stringFunctions.put(tempName, n); 
+                tempName = "";
+                temp = new ArrayList<>();
+                args = "";
+        } else if (stack>0&& mode == 4) {
+                stack -= 1;
+                HashMap<String, ArrayList<String>> n = new HashMap<>();
+                n.put(args, temp);
+                boolFunctions.put(tempName, n); 
+                tempName = "";
+                temp = new ArrayList<>();
+                args = "";
         }
     }
 
