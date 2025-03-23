@@ -437,6 +437,9 @@ public class Diesel {
                     String n = current;
                     tokens.remove(0);
                     current = tokens.get(0);
+                    if (current.matches("\\(")) {
+                        // todo
+                    }
                 }
             } catch (Exception e) {
                 System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
