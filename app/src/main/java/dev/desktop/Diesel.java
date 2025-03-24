@@ -456,6 +456,8 @@ public class Diesel {
                             System.out.println("Diesel Interpreter Error!: Expected \")\" at line " + num);
                         }
                     }
+                } else if (intFunctions.containsKey(current)) {
+
                 }
             } catch (Exception e) {
                 System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
