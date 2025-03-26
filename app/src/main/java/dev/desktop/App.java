@@ -13,7 +13,7 @@ public class App {
             Diesel.interpret("c = c+\"j\";", 3);
             Diesel.interpret("bool a = false;", 70);
             Diesel.interpret("a = 1 == 2;", 80);
-            Diesel.interpret("function sum()", 4);
+            Diesel.interpret("function int sum()", 4);
             Diesel.interpret("return 8;", 5);
             Diesel.interpret("end", 6);
             Diesel.interpret("int o = sum();", 60);

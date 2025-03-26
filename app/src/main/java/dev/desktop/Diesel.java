@@ -449,9 +449,9 @@ public class Diesel {
                             current = tokens.get(0);
                         }
                         if (current.matches("\\)")) {
-                            if (m == "int")mode = 2;
-                            else if (m=="String")mode = 3;
-                            else if (m=="bool")mode = 4;
+                            if (m == "int"){mode = 2;}
+                            else if (m=="String"){mode = 3;}
+                            else if (m=="bool"){mode = 4;}
                             stack = 1;
                             args = argString.trim();
                         } else { 
@@ -462,7 +462,7 @@ public class Diesel {
                     processIntFunctions(current, intFunctions, tokens, num, stringVars, intVars, boolVars);
                 }
             } catch (Exception e) {
-                System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
+              System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
             }
         } else if (stack >0 && mode == 1) {
             if (current.matches("end")) {
@@ -482,7 +482,6 @@ public class Diesel {
                 HashMap<String, ArrayList<String>> n = new HashMap<>();
                 n.put(args, temp);
                 intFunctions.put(tempName, n); 
-                System.out.println("yay");
                 tempName = "";
                 temp = new ArrayList<>();
                 args = "";                
@@ -521,7 +520,7 @@ public class Diesel {
         System.err.println("Diesel Interpreter Error!: Expected ';' at line " + line);
     } 
     public static int processInt(String value, HashMap<String, Integer> intVars, int line) throws ScriptException {
-        //try {
+        try {
             for (String var : intVars.keySet()) {
                 value = value.replace(var, String.valueOf(intVars.get(var)));
             }
@@ -537,7 +536,13 @@ public class Diesel {
                         for (String arg : args.split(",")) {
                             tokens.add(arg.trim());
                         }
+                    } else {
+                        tokens.add(func);
+                        tokens.add("(");
+                        tokens.add(")");
+
                     }
+                    System.out.println(tokens);
                     int functionResult = processIntFunctions(func, intFunctions, tokens, line, strings, intVars, booleans);
                     value = value.replace(functionCall, String.valueOf(functionResult));
                 }
@@ -545,10 +550,10 @@ public class Diesel {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
             Object result = engine.eval(value);
            return (int) result;
-        //} catch (Exception e) {
-          //  System.err.println("Diesel Interpreter Error!: Invalid Value for integer at line " + line);
-          //  return 0;
-        //}
+        } catch (Exception e) {
+            System.err.println("Diesel Interpreter Error!: Invalid Value for integer at line " + line);
+            return 0;
+        }
     }
     public static String processString(String value, HashMap<String, String> stringVars, int line) {
         try {
@@ -618,15 +623,12 @@ public class Diesel {
                 current = tokens.get(0);
             }
             if (current.matches("\\)")) {
-                tokens.remove(0);
-                current = tokens.get(0);
-                if (current.matches(";")) {
                     HashMap<String, String> tempStrings = new HashMap<>();
                     HashMap<String, Integer> tempIntegers = new HashMap<>();
                     HashMap<String, Boolean> tempBools = new HashMap<>();
                     ArrayList<Integer> modes = new ArrayList<>();
                     ArrayList<String> names = new ArrayList<>();
-                    HashMap<String, ArrayList<String>> args2 = procedures.get(n);
+                    HashMap<String, ArrayList<String>> args2 = intFunctions.get(n);
                     String args4 = "";
                     for ( String o : args2.keySet() ) {
                         args4 = o;
@@ -692,9 +694,6 @@ public class Diesel {
                             interpret(k, num, tempStrings, tempIntegers, tempBools);
                         }
                     }
-                } else {
-                    semicolonError(num);
-                }
             } else {
                 System.out.println("Diesel Interpreter Error!: Expected \")\" at line " + num);                            
             }
