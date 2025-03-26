@@ -1,6 +1,7 @@
 package dev.desktop;
 
 import javax.script.ScriptException;
+import java.util.Scanner;
 
 public class App {
     public static void main(String[] args) throws ScriptException {
@@ -12,23 +13,31 @@ public class App {
             Diesel.interpret("c = c+\"j\";", 3);
             Diesel.interpret("bool a = false;", 70);
             Diesel.interpret("a = 1 == 2;", 80);
-            Diesel.interpret("procedure sum(int l, int b)", 4);
-            Diesel.interpret("int k = l + b;", 5);
+            Diesel.interpret("function sum()", 4);
+            Diesel.interpret("return 8;", 5);
             Diesel.interpret("end", 6);
-            Diesel.interpret("sum(5, 6);", 60);
+            Diesel.interpret("int o = sum();", 60);
         } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
-        System.out.println(Diesel.ints);
-        System.out.println(Diesel.strings);
-        System.out.println(Diesel.booleans);
-        System.out.println(Diesel.procedures);
+
         if (args.length != 1) {
-            System.err.println("Diesel Interpreter Error!: Usage: dsl [filename]");
-            System.exit(0);
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Please provide the input file path:");
+            String inputFilePath = scanner.nextLine();
+            Diesel.preprocess(inputFilePath);
+            scanner.close();
+
+            System.out.println(Diesel.ints);
+            System.out.println(Diesel.strings);
+            System.out.println(Diesel.booleans);
+            System.out.println(Diesel.procedures);
+            System.out.println(Diesel.intFunctions);
+            System.out.println(Diesel.stringFunctions);
+            System.out.println(Diesel.boolFunctions);
         } else {
             Diesel.preprocess(args[0]);
         }
-    }
 
+    }
 }

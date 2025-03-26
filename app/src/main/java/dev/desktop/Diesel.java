@@ -363,47 +363,49 @@ public class Diesel {
                                 for ( String key : args2.keySet() ) {
                                     args4 = key;
                                 }
-                                String[] e = args4.split(",");
-                                for (String i:e) {
-                                    String[] arr2 = i.trim().split(" ");
-                                    if (arr2[0].equals("int")) {
-                                        tempIntegers.put(arr2[1], 0);
-                                        modes.add(1);
-                                        names.add(arr2[1]);
-                                    } else if (arr2[0].equals("String")) {
-                                        tempStrings.put(arr2[1], "");
-                                        modes.add(2);
-                                        names.add(arr2[1]);
-                                    } else if (arr2[0].equals("bool")) {
-                                        tempBools.put(arr2[1], false); 
-                                        modes.add(3);
-                                        names.add(arr2[1]);
-                                    } else {
-                                        System.out.println("Diesel Interpreter Error!: Invalid type at line " + num);                                                     
-                                    }
-                                }
-                                String[] v = argString.split(",");
-                                int index = 0;
-                                for (String i:v) {
-                                    if (modes.get(index) == 1) {
-                                        String value = i;
-                                        int result = processInt(value, intVars, num);
-                                        tempIntegers.put(names.get(index), result);
-                                    } else if (modes.get(index) == 2) {
-                                        String value = i;
-                                        String result = processString(value, stringVars, num);
-                                        tempStrings.put(names.get(index), result);
-                                    } else if (modes.get(index) == 3) {
-                                        String value = i;
-                                        Boolean result = false;
-                                        if (value.matches("true") || value.matches("false")) {
-                                            result = processBool(value, boolVars, num, 1);
+                                if (!args4.isEmpty()) { 
+                                    String[] e = args4.split(",");
+                                    for (String i:e) {
+                                        String[] arr2 = i.trim().split(" ");
+                                        if (arr2[0].equals("int")) {
+                                            tempIntegers.put(arr2[1], 0);
+                                            modes.add(1);
+                                            names.add(arr2[1]);
+                                        } else if (arr2[0].equals("String")) {
+                                            tempStrings.put(arr2[1], "");
+                                            modes.add(2);
+                                            names.add(arr2[1]);
+                                        } else if (arr2[0].equals("bool")) {
+                                            tempBools.put(arr2[1], false); 
+                                            modes.add(3);
+                                            names.add(arr2[1]);
                                         } else {
-                                            result = processBool(value, boolVars, num, 2);
+                                            System.out.println("Diesel Interpreter Error!: Invalid type at line " + num);                                                     
                                         }
-                                        tempBools.put(names.get(index), result);
                                     }
-                                    index++;
+                                    String[] v = argString.split(",");
+                                    int index = 0;
+                                    for (String i:v) {
+                                        if (modes.get(index) == 1) {
+                                            String value = i;
+                                            int result = processInt(value, intVars, num);
+                                            tempIntegers.put(names.get(index), result);
+                                        } else if (modes.get(index) == 2) {
+                                            String value = i;
+                                            String result = processString(value, stringVars, num);
+                                            tempStrings.put(names.get(index), result);
+                                        } else if (modes.get(index) == 3) {
+                                            String value = i;
+                                            Boolean result = false;
+                                            if (value.matches("true") || value.matches("false")) {
+                                                result = processBool(value, boolVars, num, 1);
+                                            } else {
+                                                result = processBool(value, boolVars, num, 2);
+                                            }
+                                            tempBools.put(names.get(index), result);
+                                        }
+                                        index++;
+                                    }
                                 }
                                 ArrayList<String> lines = new ArrayList<>();
                                 for (ArrayList<String> i:args2.values()) {
@@ -457,7 +459,7 @@ public class Diesel {
                         }
                     }
                 } else if (intFunctions.containsKey(current)) {
-
+                    processIntFunctions(current, intFunctions, tokens, num, stringVars, intVars, boolVars);
                 }
             } catch (Exception e) {
                 System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
@@ -480,6 +482,7 @@ public class Diesel {
                 HashMap<String, ArrayList<String>> n = new HashMap<>();
                 n.put(args, temp);
                 intFunctions.put(tempName, n); 
+                System.out.println("yay");
                 tempName = "";
                 temp = new ArrayList<>();
                 args = "";                
@@ -518,17 +521,34 @@ public class Diesel {
         System.err.println("Diesel Interpreter Error!: Expected ';' at line " + line);
     } 
     public static int processInt(String value, HashMap<String, Integer> intVars, int line) throws ScriptException {
-        try {
-        for (String var : intVars.keySet()) {
-            value = value.replace(var, String.valueOf(intVars.get(var)));
-        }
-        ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
-        Object l = engine.eval(value);
-        return (int) l;
-        } catch (Exception e) {
-            System.err.println("Diesel Interpreter Error!: Invalid Value for integer at line " + line);
-            return 0;
-        }
+        //try {
+            for (String var : intVars.keySet()) {
+                value = value.replace(var, String.valueOf(intVars.get(var)));
+            }
+            for (String func : intFunctions.keySet()) 
+            {
+                if (value.contains(func + "(")) {
+                    int startIndex = value.indexOf(func + "(");
+                    int endIndex = value.indexOf(")", startIndex) + 1;
+                    String functionCall = value.substring(startIndex, endIndex);
+                    String args = functionCall.substring(functionCall.indexOf("(") + 1, functionCall.indexOf(")"));
+                    ArrayList<String> tokens = new ArrayList<>();
+                    if (!args.trim().isEmpty()) {
+                        for (String arg : args.split(",")) {
+                            tokens.add(arg.trim());
+                        }
+                    }
+                    int functionResult = processIntFunctions(func, intFunctions, tokens, line, strings, intVars, booleans);
+                    value = value.replace(functionCall, String.valueOf(functionResult));
+                }
+            }
+            ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+            Object result = engine.eval(value);
+           return (int) result;
+        //} catch (Exception e) {
+          //  System.err.println("Diesel Interpreter Error!: Invalid Value for integer at line " + line);
+          //  return 0;
+        //}
     }
     public static String processString(String value, HashMap<String, String> stringVars, int line) {
         try {
@@ -568,6 +588,7 @@ public class Diesel {
             return "";
         }
     } 
+         
     public static Boolean processBool(String value, HashMap<String, Boolean> boolVars, int line, int mode) {
         try {
             if (mode == 1) {
@@ -582,5 +603,104 @@ public class Diesel {
             System.err.println("Diesel Interpreter Error!: Invalid Boolean value at line " + line);
             return false;
         }
+    } 
+    public static int processIntFunctions(String key, HashMap<String, HashMap<String, ArrayList<String>>> functions, ArrayList<String> tokens, int num, HashMap<String, String> stringVars, HashMap<String, Integer> intVars, HashMap<String, Boolean> boolVars) throws ScriptException {
+        String n = key;
+        tokens.remove(0);
+        String current = tokens.get(0);
+        if (current.matches("\\(")) {
+            tokens.remove(0);
+            current = tokens.get(0);
+            String argString = "";
+            while (!current.matches("\\)") && !current.matches(" ")) {
+                argString += " " + current;
+                tokens.remove(0);
+                current = tokens.get(0);
+            }
+            if (current.matches("\\)")) {
+                tokens.remove(0);
+                current = tokens.get(0);
+                if (current.matches(";")) {
+                    HashMap<String, String> tempStrings = new HashMap<>();
+                    HashMap<String, Integer> tempIntegers = new HashMap<>();
+                    HashMap<String, Boolean> tempBools = new HashMap<>();
+                    ArrayList<Integer> modes = new ArrayList<>();
+                    ArrayList<String> names = new ArrayList<>();
+                    HashMap<String, ArrayList<String>> args2 = procedures.get(n);
+                    String args4 = "";
+                    for ( String o : args2.keySet() ) {
+                        args4 = o;
+                    }
+                    if (!args4.isEmpty()) { 
+                        String[] e = args4.split(",");
+                        for (String i:e) {
+                            String[] arr2 = i.trim().split(" ");
+                            if (arr2[0].equals("int")) {
+                                tempIntegers.put(arr2[1], 0);
+                                modes.add(1);
+                                names.add(arr2[1]);
+                            } else if (arr2[0].equals("String")) {
+                                tempStrings.put(arr2[1], "");
+                                modes.add(2);
+                                names.add(arr2[1]);
+                            } else if (arr2[0].equals("bool")) {
+                                tempBools.put(arr2[1], false); 
+                                modes.add(3);
+                                names.add(arr2[1]);
+                            } else {
+                                System.out.println("Diesel Interpreter Error!: Invalid type at line " + num);                                                     
+                            }
+                        }
+                        String[] v = argString.split(",");
+                        int index = 0;
+                        for (String i:v) {
+                            if (modes.get(index) == 1) {
+                                String value = i;
+                                int result = processInt(value, intVars, num);
+                                tempIntegers.put(names.get(index), result);
+                            } else if (modes.get(index) == 2) {
+                                String value = i;
+                                String result = processString(value, stringVars, num);
+                                tempStrings.put(names.get(index), result);
+                            } else if (modes.get(index) == 3) {
+                                String value = i;
+                                Boolean result = false;
+                                if (value.matches("true") || value.matches("false")) {
+                                    result = processBool(value, boolVars, num, 1);
+                                } else {
+                                    result = processBool(value, boolVars, num, 2);
+                                }
+                                tempBools.put(names.get(index), result);
+                            }
+                            index++;
+                        }
+                    }
+                    ArrayList<String> lines = new ArrayList<>();
+                    for (ArrayList<String> i:args2.values()) {
+                        lines = i;
+                    }
+                    for (String k:lines) {
+                        if (k.trim().startsWith("return")) {
+                            ArrayList<String> returnTokens = new ArrayList<>(lex(k.trim()));
+                            String u = returnTokens.get(0);
+                            if (u.matches("return")) {
+                                returnTokens.remove(0);
+                                u = returnTokens.get(0);
+                                return processInt(u, tempIntegers, num); 
+                            }
+                        } else {
+                            interpret(k, num, tempStrings, tempIntegers, tempBools);
+                        }
+                    }
+                } else {
+                    semicolonError(num);
+                }
+            } else {
+                System.out.println("Diesel Interpreter Error!: Expected \")\" at line " + num);                            
+            }
+        } else {
+            System.out.println("Diesel Interpreter Error!: Expected \"(\" at line " + num);                        
+        }
+        return 0;
     }
 }
