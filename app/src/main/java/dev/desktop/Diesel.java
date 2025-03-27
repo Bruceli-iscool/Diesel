@@ -489,6 +489,7 @@ public class Diesel {
                 temp.add(line);
             } 
         } else if (stack>0 && mode == 3) {
+            if (current.matches("end")) {
                 stack -= 1;
                 HashMap<String, ArrayList<String>> n = new HashMap<>();
                 n.put(args, temp);
@@ -496,6 +497,9 @@ public class Diesel {
                 tempName = "";
                 temp = new ArrayList<>();
                 args = "";
+            } else {
+                temp.add(line);
+            }
         } else if (stack>0&& mode == 4) {
                 stack -= 1;
                 HashMap<String, ArrayList<String>> n = new HashMap<>();
@@ -542,7 +546,6 @@ public class Diesel {
                         tokens.add(")");
 
                     }
-                    System.out.println(tokens);
                     int functionResult = processIntFunctions(func, intFunctions, tokens, line, strings, intVars, booleans);
                     value = value.replace(functionCall, String.valueOf(functionResult));
                 }
@@ -555,7 +558,7 @@ public class Diesel {
             return 0;
         }
     }
-    public static String processString(String value, HashMap<String, String> stringVars, int line) {
+    public static String processString(String value, HashMap<String, String> stringVars, int line) throws ScriptException{
         try {
             int i = 0;
             String result = "";
@@ -579,6 +582,30 @@ public class Diesel {
                         break;
                     }
                 }
+                for (String func : stringFunctions.keySet()) 
+                {
+                    if (value.contains(func + "(")) {
+                        int startIndex = value.indexOf(func + "(");
+                        int endIndex = value.indexOf(")", startIndex) + 1;
+                        String functionCall = value.substring(startIndex, endIndex);
+                        String args = functionCall.substring(functionCall.indexOf("(") + 1, functionCall.indexOf(")"));
+                        ArrayList<String> tokens = new ArrayList<>();
+                        if (!args.trim().isEmpty()) {
+                            for (String arg : args.split(",")) {
+                                tokens.add(arg.trim());
+                            }
+                        } else {
+                            tokens.add(func);
+                            tokens.add("(");
+                            tokens.add(")");
+    
+                        }
+                        String functionResult = "\"" + processStringFunctions(func, intFunctions, tokens, line, stringVars, ints, booleans)+"\"";
+                        value = value.replace(functionCall, String.valueOf(functionResult));
+                        replaced = true;
+                        break;
+                    }
+                }
                 if (!replaced) {
                     result += c;
                     i++;
@@ -589,7 +616,7 @@ public class Diesel {
             Object c = engine.eval(value);
             return (String) c;
         } catch (Exception e) {
-            System.err.println("Diesel Interpreter Error!: Expected \"=\" at line  " + line);
+            System.err.println("Diesel Interpreter Error!: An error occured at line  " + line);
             return "";
         }
     } 
@@ -720,7 +747,7 @@ public class Diesel {
                     HashMap<String, Boolean> tempBools = new HashMap<>();
                     ArrayList<Integer> modes = new ArrayList<>();
                     ArrayList<String> names = new ArrayList<>();
-                    HashMap<String, ArrayList<String>> args2 = intFunctions.get(n);
+                    HashMap<String, ArrayList<String>> args2 = stringFunctions.get(n);
                     String args4 = "";
                     for ( String o : args2.keySet() ) {
                         args4 = o;
@@ -779,7 +806,7 @@ public class Diesel {
                             String u = returnTokens.get(0);
                             if (u.matches("return")) {
                                 returnTokens.remove(0);
-                                u = returnTokens.get(0);
+                                u = String.join("", returnTokens);
                                 return processString(u, tempStrings, num); 
                             }
                         } else {
@@ -790,8 +817,9 @@ public class Diesel {
                 System.out.println("Diesel Interpreter Error!: Expected \")\" at line " + num);                            
             }
         } else {
-            System.out.println("Diesel Interpreter Error!: Expected \"(\" at line " + num);                        
+            System.out.println("Diesel Interpreter Error!: Expected \"(\" at line " + num); 
+                   
         }
-        return null;
+        return null;    
     }
 }
