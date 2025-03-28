@@ -12,11 +12,11 @@ public class App {
             Diesel.interpret("e = e+ 5;", 30);
             Diesel.interpret("c = c+\"j\";", 3);
             Diesel.interpret("bool a = false;", 70);
-            Diesel.interpret("a = 1 == 2;", 80);
-            Diesel.interpret("function String sum()", 4);
-            Diesel.interpret("return \"JOhn\";", 5);
+            Diesel.interpret("a = 2 == 2;", 80);
+            Diesel.interpret("function bool sum()", 4);
+            Diesel.interpret("return true;", 5);
             Diesel.interpret("end", 6);
-            Diesel.interpret("String o = sum() + c + c;", 60);
+            Diesel.interpret("bool o = sum()!=true;", 60);
         } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
