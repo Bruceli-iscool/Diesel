@@ -465,7 +465,29 @@ public class Diesel {
                 } else if (boolFunctions.containsKey(current)) {
                     processBoolFunctions(current, boolFunctions, tokens, num, stringVars, intVars, boolVars);
                 } else if (current.matches("if")) {
-                    //todo
+                    tokens.remove(0);
+                    current = tokens.get(0);
+                    if (current.matches("\\(")) {
+                        tokens.remove(0);
+                        current = tokens.get(0);
+                        String booleanValue = "";
+                        while (current != "\\)") {
+                            booleanValue += current;
+                            tokens.remove(0);
+                            current = tokens.get(0);
+                        }
+                        if (current.matches("\\)")) {
+                            if (processBool(booleanValue, boolVars, num, 2)) {
+                                mode = 5;
+                                stack += 1;
+                            } else {
+                                mode = 6;
+                                stack += 1;
+                            }
+                        }
+                    } else {
+                        System.err.println("Diesel Interpreter Error!: Expected '\\(' but recieved '" + current + "' at line " + num);
+                    }
                 }
             } catch (Exception e) {
               System.err.println("Diesel Interpreter Error!: An Unknown Error Occured at line " + num);
@@ -518,7 +540,22 @@ public class Diesel {
             } else {
                 temp.add(line); 
             }
-        }
+        } else if (stack >0 && mode == 5) {
+            if (current.matches("end")) {
+                mode = 8;
+                stack -= 1;
+            } else {
+                interpret(line, num, stringVars, intVars, boolVars);
+            }
+        } else if (stack > 0 && mode == 5) {
+            if (current.matches("end")) {
+                mode = 7;
+                stack -= 1;
+            } else {
+                return;
+            }
+        } 
+        // todo
     }
 
     // Helper functions

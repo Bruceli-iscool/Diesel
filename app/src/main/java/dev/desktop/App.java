@@ -17,6 +17,9 @@ public class App {
             Diesel.interpret("return true;", 5);
             Diesel.interpret("end", 6);
             Diesel.interpret("bool o = sum()!=true;", 60);
+            Diesel.interpret("if (true == false) ", 400);
+            Diesel.interpret("a = false;", 200);
+            Diesel.interpret("end", 100);
         } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
